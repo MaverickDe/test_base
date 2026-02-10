@@ -2,18 +2,30 @@
 
 import { createContext, useContext, useMemo, useState, ReactNode } from 'react';
 import { createCoinbaseWalletSDK } from '@coinbase/wallet-sdk';
-
+import { ethers } from 'ethers';
 // 1. Define what data is available globally
 interface WalletContextType {
   address: string;
   setAddress: (addr: string) => void;
   cbProvider: any;
+  connectEVMWallet: any;
+  setIsDisconnectedState: any;
+  isDisconnectedState: any;
+  setLoading: any;
+  loading: any;
+  setError: any;
+  error: any;
+  networks: any;
+  disconnectWallet: any;
 }
 
 const WalletContext = createContext<WalletContextType | null>(null);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const [address, setAddress] = useState('');
+    const [isDisconnectedState, setIsDisconnectedState] = useState(false);
+      const [loading, setLoading] = useState(false);
+       const [error, setError] = useState<string>('');
 
   // 2. Initialize SDK only once
   const sdk = useMemo(() => {
@@ -28,8 +40,84 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   // 3. Get the Provider
   const cbProvider = useMemo(() => sdk?.getProvider() || null, [sdk]);
 
+      const networks = {
+  eth: { chainId: '0x1', chainName: 'Ethereum' },
+  bsc: { chainId: '0x38', chainName: 'BNB Smart Chain' },
+  base: { chainId: '0x2105', chainName: 'Base' }
+};
+
+    const connectEVMWallet = async ({config,callback}) => {
+        try {
+
+          let {chainId,chainName} = config
+            setLoading(true);
+            setError('');
+
+            if (!cbProvider) throw new Error("SDK not initialized");
+
+            const accounts = await cbProvider.request({
+                method: 'eth_requestAccounts'
+            }) as string[];
+            const userAddress = accounts[0];
+
+            try {
+                await cbProvider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId }],
+                });
+            } catch (switchError: any) {
+                if (switchError.code === 4902) {
+                    await cbProvider.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: chainId,
+                            chainName: chainName,
+                            rpcUrls: ['https://bsc-dataseed.binance.org/'],
+                            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                            blockExplorerUrls: ['https://bscscan.com/']
+                        }],
+                    });
+                }
+            }
+
+            setAddress(userAddress);
+            setIsDisconnectedState(false);
+            localStorage.setItem('walletConnected', 'true');
+
+
+
+if(callback){
+ await callback()
+}
+            // await updateBalances(userAddress, provider);
+
+        } catch (err: any) {
+            setError(err.message || 'Connection failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+   const disconnectWallet = async ({callback}) => {
+        if (cbProvider && 'disconnect' in cbProvider) {
+            await (cbProvider as any).disconnect();
+        }
+        localStorage.removeItem('walletConnected');
+        setAddress('');
+        // setBnbBalance('0');
+        // setT22Balance(0);
+        setIsDisconnectedState(true);
+
+        if(callback){
+          callback()
+        }
+    };
   return (
-    <WalletContext.Provider value={{ address, setAddress, cbProvider }}>
+    <WalletContext.Provider value={{setIsDisconnectedState,networks,disconnectWallet,
+isDisconnectedState,
+setLoading,
+loading,
+setError,
+error, address, setAddress, cbProvider ,connectEVMWallet}}>
       {children}
     </WalletContext.Provider>
   );

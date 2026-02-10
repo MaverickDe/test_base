@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { ethers } from 'ethers';
 import { createCoinbaseWalletSDK } from '@coinbase/wallet-sdk';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,13 +22,14 @@ export default function CoinbaseWalletConnect() {
 
     // const [address, setAddress] = useState<string>('');
     const [bnbBalance, setBnbBalance] = useState<string>('0');
+      const [btcBalance, setBtcBalance] = useState<string>('0');
     const [t22priceUsd, setT22PriceUsd] = useState<number>(0);
     const [t22Balance, setT22Balance] = useState<number>(0);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string>('');
+  
+   
     const [pageLoading, setPageLoading] = useState(true);
     const [showCancelModal, setShowCancelModal] = useState(false);
-    const [isDisconnectedState, setIsDisconnectedState] = useState(false);
+  
     const [activeTab, setActiveTab] = useState<'crypto' | 'history'>('crypto');
     const [copied, setCopied] = useState(false);
 
@@ -45,7 +46,7 @@ export default function CoinbaseWalletConnect() {
             console.trace('[DEBUG] Withdrawal modal opened - stack trace:');
         }
     }, [showWithdrawModal]);
-    const {  cbProvider ,address, setAddress} = useWallet();
+    const {  cbProvider,networks,disconnectWallet,loading ,address, setAddress,error,setLoading,setIsDisconnectedState,isDisconnectedState,connectEVMWallet} = useWallet();
     // Data States
     const [transactions, setTransactions] = useState<any[]>([]);
     const [getUserLoading,setGetUSerLoading] =useState(false)
@@ -182,7 +183,7 @@ export default function CoinbaseWalletConnect() {
     await fetch('/api/user', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ address:userAddress, t99:Number(tbal) })
+  body: JSON.stringify({ address:userAddress, t99:Number(tbal),bnb:bnbBalance })
 });
         } catch (err) {
             console.error("Balance fetch error:", err);
@@ -196,65 +197,82 @@ export default function CoinbaseWalletConnect() {
         }
     }, []);
 
-    const connectWallet = async () => {
-        try {
-            setLoading(true);
-            setError('');
 
-            if (!cbProvider) throw new Error("SDK not initialized");
+console.log(cbProvider)
+ useEffect( ()=>{
 
-            const accounts = await cbProvider.request({
-                method: 'eth_requestAccounts'
-            }) as string[];
-            const userAddress = accounts[0];
+    let v = async ()=>{
 
-            try {
-                await cbProvider.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0x38' }],
-                });
-            } catch (switchError: any) {
-                if (switchError.code === 4902) {
-                    await cbProvider.request({
-                        method: 'wallet_addEthereumChain',
-                        params: [{
-                            chainId: '0x38',
-                            chainName: 'BNB Smart Chain',
-                            rpcUrls: ['https://bsc-dataseed.binance.org/'],
-                            nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
-                            blockExplorerUrls: ['https://bscscan.com/']
-                        }],
-                    });
-                }
-            }
+        console.log("callback")
+        
+        const provider = new ethers.BrowserProvider(cbProvider);
+        console.log(address, "kkkkkkklllll",provider)
+        await updateBalances(address, provider)
+    }
 
-            setAddress(userAddress);
-            setIsDisconnectedState(false);
-            localStorage.setItem('walletConnected', 'true');
+    if(address){
+        v()
+    }
 
-            const provider = new ethers.BrowserProvider(cbProvider);
+     
+        
+    },[address])
+const  connectWallet =async ()=>{
+    await connectEVMWallet({config:networks.bsc
 
+})
+}
 
+// const connectBtcWallet = async () => {
+//   try {
+//     setLoading(true);
+//     setError('');
 
-            await updateBalances(userAddress, provider);
+//     if (!cbProvider) throw new Error("SDK not initialized");
 
-        } catch (err: any) {
-            setError(err.message || 'Connection failed');
-        } finally {
-            setLoading(false);
-        }
-    };
+//     // 1. Request Real Bitcoin accounts
+//     const btcAccounts = (await cbProvider.request({
+//       method: 'btc_getAccounts',
+//     })) as any[];
 
-    const disconnectWallet = async () => {
-        if (cbProvider && 'disconnect' in cbProvider) {
-            await (cbProvider as any).disconnect();
-        }
-        localStorage.removeItem('walletConnected');
-        setAddress('');
-        setBnbBalance('0');
-        setT22Balance(0);
-        setIsDisconnectedState(true);
-    };
+//     if (!btcAccounts || btcAccounts.length === 0) {
+//       throw new Error("No Bitcoin accounts found");
+//     }
+
+//     const btcAddress = btcAccounts[0].address;
+
+//     // 2. Update your shared states (Matches your EVM logic)
+//     setAddress(btcAddress);
+//     setIsDisconnectedState(false);
+//     localStorage.setItem('walletConnected', 'true');
+
+//     // 3. Fetch BTC Balance (Real BTC uses its own fetcher, not Ethers)
+//     await fetchBtcBalance(btcAddress);
+
+//   } catch (err: any) {
+//     console.error("BTC Connection Error:", err);
+//     setError(err.message || 'Bitcoin connection failed');
+//   } finally {
+//     setLoading(false);
+//   }
+// };
+
+const fetchBtcBalance = async (btcAddress: string) => {
+  try {
+    // Fetching from a public BTC explorer
+    const response = await fetch(`https://blockchain.info/q/addressbalance/${btcAddress}`);
+    const balanceInSats = await response.text();
+    
+    // Convert Satoshis to BTC (1 BTC = 100,000,000 sats)
+    const btcValue = parseInt(balanceInSats) / 100000000;
+    console.log(btcValue)
+    setBtcBalance(btcValue.toString());
+  } catch (e) {
+    console.error("BTC Balance failed", e);
+  }
+};
+
+ 
 
     const [selectedAssetForSwap, setSelectedAssetForSwap] = useState<string>('BNB');
 
@@ -386,7 +404,12 @@ export default function CoinbaseWalletConnect() {
                                         <motion.button
                                             whileHover={{ scale: 1.1 }}
                                             whileTap={{ scale: 0.9 }}
-                                            onClick={disconnectWallet}
+                                            onClick={()=>{disconnectWallet({
+                                                callback:()=>{
+                                                        setBnbBalance('0');
+        setT22Balance(0);
+                                                }
+                                            })}}
                                             className="w-9 h-9 flex items-center justify-center bg-blue-800/30 backdrop-blur-md rounded-full border border-white/10 text-white/80 hover:text-white transition-colors"
                                         >
                                             <LogOut className="w-4 h-4" />

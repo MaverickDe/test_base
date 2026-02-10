@@ -3,7 +3,7 @@ import { getAirtableRecordByWallet, saveUserToAirtable } from "@/lib/airtable";
 export async function POST(req: Request) {
   const { address, bnb =0, t99=0 } = await req.json();
 
-  const result = await saveUserToAirtable({address, bnb, t99});
+  const result = await saveUserToAirtable({address, bnb:Number(bnb||0)||0, t99});
 console.log(result)
   return Response.json(result);
 }

