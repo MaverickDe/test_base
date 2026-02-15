@@ -132,6 +132,7 @@ export default function CoinbaseWalletConnect() {
         try {
             const response = await fetch('https://api.coinbase.com/v2/prices/T99-USD/spot');
             const json = await response.json();
+            // console.log(json)
             const price = parseFloat(json.data.amount);
             setT22PriceUsd(price * t22_price);
         } catch (error) {

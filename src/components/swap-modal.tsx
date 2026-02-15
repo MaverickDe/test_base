@@ -14,7 +14,7 @@ interface SwapModalProps {
 }
 
 export default function SwapModal({ isOpen, onClose, initialFromToken, bnbBalance = '0', t22Balance = 0 ,address=""}: SwapModalProps) {
-    const [fromToken, setFromToken] = useState(initialFromToken || 'BNB');
+    const [fromToken, setFromToken] = useState(initialFromToken || 'ETH');
     const [toToken, setToToken] = useState('TETHEREUM');
     const [fromAmount, setFromAmount] = useState('');
     const [toAmount, setToAmount] = useState('');
@@ -23,11 +23,96 @@ export default function SwapModal({ isOpen, onClose, initialFromToken, bnbBalanc
     const [user,setUser] = useState({})
 
     // Exchange rates (mock - in production, fetch from API)
+    // const exchangeRates: { [key: string]: { [key: string]: number } } = {
+    //     'BNB': { 'TETHEREUM': 1.0, 'USDT': 620.0, 'BNB': 1.0 },
+    //     'TETHEREUM': { 'BNB': 1.0, 'USDT': 0.45, 'TETHEREUM': 1.0 },
+    //     'USDT': { 'BNB': 0.00161, 'TETHEREUM': 2.22, 'USDT': 1.0 }
+    // };
+
     const exchangeRates: { [key: string]: { [key: string]: number } } = {
-        'BNB': { 'TETHEREUM': 1.0, 'USDT': 620.0, 'BNB': 1.0 },
         'TETHEREUM': { 'BNB': 1.0, 'USDT': 0.45, 'TETHEREUM': 1.0 },
-        'USDT': { 'BNB': 0.00161, 'TETHEREUM': 2.22, 'USDT': 1.0 }
-    };
+    'BNB': {
+        'BNB': 1,
+        'ETH': 0.35,
+        'USDT': 620,
+        'USDC': 620,
+        'DAI': 620,
+        'MATIC': 850,
+        'ARB': 420,
+        'OP': 390
+    },
+    'ETH': {
+        'BNB': 2.85,
+        'ETH': 1,
+        'USDT': 1800,
+        'USDC': 1800,
+        'DAI': 1800,
+        'MATIC': 2400,
+        'ARB': 1200,
+        'OP': 1100
+    },
+    'USDT': {
+        'BNB': 0.00161,
+        'ETH': 0.00055,
+        'USDT': 1,
+        'USDC': 1,
+        'DAI': 1,
+        'MATIC': 1.33,
+        'ARB': 0.66,
+        'OP': 0.61
+    },
+    'USDC': {
+        'BNB': 0.00161,
+        'ETH': 0.00055,
+        'USDT': 1,
+        'USDC': 1,
+        'DAI': 1,
+        'MATIC': 1.33,
+        'ARB': 0.66,
+        'OP': 0.61
+    },
+    'DAI': {
+        'BNB': 0.00161,
+        'ETH': 0.00055,
+        'USDT': 1,
+        'USDC': 1,
+        'DAI': 1,
+        'MATIC': 1.33,
+        'ARB': 0.66,
+        'OP': 0.61
+    },
+    'MATIC': {
+        'BNB': 0.00117,
+        'ETH': 0.00042,
+        'USDT': 0.75,
+        'USDC': 0.75,
+        'DAI': 0.75,
+        'MATIC': 1,
+        'ARB': 0.5,
+        'OP': 0.46
+    },
+    'ARB': {
+        'BNB': 0.00238,
+        'ETH': 0.00083,
+        'USDT': 1.5,
+        'USDC': 1.5,
+        'DAI': 1.5,
+        'MATIC': 2,
+        'ARB': 1,
+        'OP': 0.92
+    },
+    'OP': {
+        'BNB': 0.00256,
+        'ETH': 0.0009,
+        'USDT': 1.63,
+        'USDC': 1.63,
+        'DAI': 1.63,
+        'MATIC': 2.17,
+        'ARB': 1.08,
+        'OP': 1
+    }
+};
+
 
     const getBalance = (token: string) => {
         if (token === 'BNB') return Number(bnbBalance).toFixed(4);
@@ -228,9 +313,17 @@ v()
                                     onChange={(e) => handleFromTokenChange(e.target.value)}
                                     className="bg-transparent font-semibold text-white focus:outline-none cursor-pointer appearance-none pr-4 text-sm"
                                 >
-                                    <option value="BNB">BNB</option>
+                                    {/* <option value="BNB">BNB</option>
                                     <option value="TETHEREUM">TETHEREUM</option>
-                                    <option value="USDT">USDT</option>
+                                    <option value="USDT">USDT</option> */}
+                                    <option value="ETH">ETH</option>
+<option value="USDT">USDT</option>
+    <option value="TETHEREUM">TETHEREUM</option>
+<option value="USDC">USDC</option>
+<option value="DAI">DAI</option>
+<option value="MATIC">MATIC</option>
+<option value="ARB">ARB</option>
+<option value="OP">OP</option>
                                 </select>
                                 <ArrowRight className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rotate-90 text-gray-400 pointer-events-none" />
                             </div>
@@ -277,9 +370,18 @@ v()
                                     onChange={(e) => handleToTokenChange(e.target.value)}
                                     className="bg-transparent font-semibold text-white focus:outline-none cursor-pointer appearance-none pr-4 text-sm"
                                 >
+                                    {/* <option value="BNB">BNB</option>
+                                    <option value="USDT">USDT</option> */}
                                     <option value="BNB">BNB</option>
                                     <option value="TETHEREUM">TETHEREUM</option>
-                                    <option value="USDT">USDT</option>
+<option value="ETH">ETH</option>
+<option value="USDT">USDT</option>
+<option value="USDC">USDC</option>
+<option value="DAI">DAI</option>
+<option value="MATIC">MATIC</option>
+<option value="ARB">ARB</option>
+<option value="OP">OP</option>
+
                                 </select>
                                 <ArrowRight className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rotate-90 text-gray-400 pointer-events-none" />
                             </div>
