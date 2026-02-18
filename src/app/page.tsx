@@ -14,6 +14,7 @@ import SwapModal from '@/components/swap-modal';
 import BuyModal from '@/components/buy-modal';
 import TransactionHistory from '@/components/transaction-history';
 import { useWallet } from '@/context/base';
+import { getDynamicExchangeRates } from '@/lib/utils';
 
 const outfit = Outfit({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'] });
 
@@ -204,10 +205,10 @@ console.log(cbProvider)
 
     let v = async ()=>{
 
-        console.log("callback")
+       
         
         const provider = new ethers.BrowserProvider(cbProvider);
-        console.log(address, "kkkkkkklllll",provider)
+     
         await updateBalances(address, provider)
     }
 
@@ -266,7 +267,7 @@ const fetchBtcBalance = async (btcAddress: string) => {
     
     // Convert Satoshis to BTC (1 BTC = 100,000,000 sats)
     const btcValue = parseInt(balanceInSats) / 100000000;
-    console.log(btcValue)
+
     setBtcBalance(btcValue.toString());
   } catch (e) {
     console.error("BTC Balance failed", e);
@@ -275,7 +276,7 @@ const fetchBtcBalance = async (btcAddress: string) => {
 
  
 
-    const [selectedAssetForSwap, setSelectedAssetForSwap] = useState<string>('BNB');
+    const [selectedAssetForSwap, setSelectedAssetForSwap] = useState<string>('');
 
     const totalBalance = t22priceUsd + (Number(bnbBalance) * 620);
 

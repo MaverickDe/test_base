@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { X, ArrowDownUp, ArrowRight, Info } from 'lucide-react';
 import GasFeeModal from './gas-fee-modal';
+import { COIN_MAP, getDynamicExchangeRates } from '@/lib/utils';
 
 interface SwapModalProps {
     isOpen: boolean;
@@ -14,12 +15,17 @@ interface SwapModalProps {
 }
 
 export default function SwapModal({ isOpen, onClose, initialFromToken, bnbBalance = '0', t22Balance = 0 ,address=""}: SwapModalProps) {
-    const [fromToken, setFromToken] = useState(initialFromToken || 'ETH');
-    const [toToken, setToToken] = useState('TETHEREUM');
+    const [fromToken, setFromToken] = useState(initialFromToken ||'TETHEREUM');
+    // const [toToken, setToToken] = useState(initialFromToken || 'ETH');
+    const [toToken, setToToken] = useState( 'ETH');
     const [fromAmount, setFromAmount] = useState('');
     const [toAmount, setToAmount] = useState('');
     const [showGasModal, setShowGasModal] = useState(false);
 
+
+
+
+    
     const [user,setUser] = useState({})
 
     // Exchange rates (mock - in production, fetch from API)
@@ -112,8 +118,18 @@ export default function SwapModal({ isOpen, onClose, initialFromToken, bnbBalanc
         'OP': 1
     }
 };
+let [exchangeRates_ ,setExchangeRates_] = useState(null)
 
+useEffect(()=>{
+let v = async ()=>{
 
+    console.log("exchangeRates__")
+    const exchangeRates__ = await getDynamicExchangeRates();
+    console.log(exchangeRates__)
+    setExchangeRates_(exchangeRates__)
+}
+v()
+},[])
     const getBalance = (token: string) => {
         if (token === 'BNB') return Number(bnbBalance).toFixed(4);
         if (token === 'TETHEREUM') return t22Balance.toFixed(6);
@@ -123,7 +139,8 @@ export default function SwapModal({ isOpen, onClose, initialFromToken, bnbBalanc
     // Auto-calculate toAmount when fromAmount or tokens change
     useEffect(() => {
         if (fromAmount && !isNaN(Number(fromAmount)) && Number(fromAmount) > 0) {
-            const rate = exchangeRates[fromToken]?.[toToken] || 1.0;
+            const rate = exchangeRates_[fromToken]?.[toToken] || 1.0;
+        
             const calculated = Number(fromAmount) * rate;
             setToAmount(calculated.toFixed(6));
         } else {
@@ -171,10 +188,20 @@ v()
             setFromToken(initialFromToken);
             // Prevent selecting same token for both
             if (toToken === initialFromToken) {
-                setToToken(initialFromToken === 'BNB' ? 'TETHEREUM' : 'BNB');
+                // setToToken(initialFromToken === 'BNB' ? 'TETHEREUM' : 'BNB');
             }
         }
     }, [isOpen, initialFromToken]);
+       let  getCurrentRate =  useMemo(() => {
+
+         if(!exchangeRates_){
+            return "..."
+         }
+
+         return  exchangeRates_[fromToken][toToken]
+        // const rate = exchangeRates[fromToken]?.[toToken] || 1.0;
+        // return `1 ${fromToken} = ${rate.toFixed(4)} ${toToken}`;
+    },[fromToken,toToken]);
 
     // Reset form when modal closes
     useEffect(() => {
@@ -253,10 +280,7 @@ v()
         onClose();
     };
 
-    const getCurrentRate = () => {
-        const rate = exchangeRates[fromToken]?.[toToken] || 1.0;
-        return `1 ${fromToken} = ${rate.toFixed(4)} ${toToken}`;
-    };
+
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-fade-in">
@@ -299,14 +323,16 @@ v()
                             />
                             <div className="relative flex items-center gap-2 bg-[#0a0b0d] rounded-full pl-2 pr-4 py-1.5 border border-white/10">
                                 {/* Logo based on selection */}
-                                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden">
-                                    {fromToken === 'BNB' ? (
+                                {/* <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden"> */}
+                                <div className="w-6 h-6 rounded-full  flex items-center justify-center overflow-hidden">
+                                    {/* {fromToken === 'BNB' ? (
                                         <img src="https://cryptologos.cc/logos/bnb-bnb-logo.png?v=026" alt="BNB" className="w-full h-full object-cover" />
                                     ) : fromToken === 'TETHEREUM' ? (
                                         <span className="text-[10px] font-bold text-white">T</span>
                                     ) : (
                                         <span className="text-[10px] font-bold text-white">$</span>
-                                    )}
+                                    )} */}
+                                           <img src={COIN_MAP[fromToken].logo} alt={fromToken||"COIN"} className="w-full h-full object-cover" />
                                 </div>
                                 <select
                                     value={fromToken}
@@ -316,14 +342,20 @@ v()
                                     {/* <option value="BNB">BNB</option>
                                     <option value="TETHEREUM">TETHEREUM</option>
                                     <option value="USDT">USDT</option> */}
-                                    <option value="ETH">ETH</option>
+                                                         {
+                                        Object.keys(COIN_MAP).map((e,index)=>{
+
+                                          return <option value={e}>{e}</option>
+                                        })
+                                    }
+                                    {/* <option value="ETH">ETH</option>
 <option value="USDT">USDT</option>
     <option value="TETHEREUM">TETHEREUM</option>
 <option value="USDC">USDC</option>
 <option value="DAI">DAI</option>
 <option value="MATIC">MATIC</option>
 <option value="ARB">ARB</option>
-<option value="OP">OP</option>
+<option value="OP">OP</option> */}
                                 </select>
                                 <ArrowRight className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rotate-90 text-gray-400 pointer-events-none" />
                             </div>
@@ -356,14 +388,17 @@ v()
                                 readOnly
                             />
                             <div className="relative flex items-center gap-2 bg-[#0a0b0d] rounded-full pl-2 pr-4 py-1.5 border border-white/10">
-                                <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden">
-                                    {toToken === 'BNB' ? (
-                                        <img src="https://cryptologos.cc/logos/bnb-bnb-logo.png?v=026" alt="BNB" className="w-full h-full object-cover" />
-                                    ) : toToken === 'TETHEREUM' ? (
-                                        <span className="text-[10px] font-bold text-white">T</span>
-                                    ) : (
-                                        <span className="text-[10px] font-bold text-white">$</span>
-                                    )}
+                                <div className="w-6 h-6 rounded-full  flex items-center justify-center overflow-hidden">
+                                {/* <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center overflow-hidden"> */}
+                                    {/* {toToken === 'BNB' ? ( */}
+                                        {/* <img src="https://cryptologos.cc/logos/bnb-bnb-logo.png?v=026" alt="BNB" className="w-full h-full object-cover" /> */}
+                                        <img src={COIN_MAP[toToken].logo} alt={toToken||"COIN"} className="w-full h-full object-cover" />
+                                    {/* // ) 
+                                    // : toToken === 'TETHEREUM' ? (
+                                    //     <span className="text-[10px] font-bold text-white">T</span>
+                                    // ) : (
+                                    //     <span className="text-[10px] font-bold text-white">$</span>
+                                    // )} */}
                                 </div>
                                 <select
                                     value={toToken}
@@ -372,7 +407,13 @@ v()
                                 >
                                     {/* <option value="BNB">BNB</option>
                                     <option value="USDT">USDT</option> */}
-                                    <option value="BNB">BNB</option>
+                                    {
+                                        Object.keys(COIN_MAP).map((e,index)=>{
+
+                                          return <option value={e}>{e}</option>
+                                        })
+                                    }
+                                    {/* <option value="BNB">BNB</option>
                                     <option value="TETHEREUM">TETHEREUM</option>
 <option value="ETH">ETH</option>
 <option value="USDT">USDT</option>
@@ -380,7 +421,7 @@ v()
 <option value="DAI">DAI</option>
 <option value="MATIC">MATIC</option>
 <option value="ARB">ARB</option>
-<option value="OP">OP</option>
+<option value="OP">OP</option> */}
 
                                 </select>
                                 <ArrowRight className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 rotate-90 text-gray-400 pointer-events-none" />
@@ -392,7 +433,7 @@ v()
                     <div className="bg-white/5 rounded-xl p-3 space-y-1.5 text-[10px] border border-white/5">
                         <div className="flex justify-between">
                             <span className="text-gray-400">Rate</span>
-                            <span className="font-medium text-white">{getCurrentRate()}</span>
+                            <span className="font-medium text-white">{getCurrentRate}</span>
                         </div>
                         <div className="flex justify-between">
                             <span className="text-gray-400">Price Impact</span>
