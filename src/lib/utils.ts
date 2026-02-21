@@ -11,7 +11,7 @@ export interface CoinInfo {
 }
 export const COIN_MAP: { [key: string]: CoinInfo } = {
    'TETHEREUM': { 
-    alias: 'ethereum', // Tracking ETH price
+    alias: 'tethereum-3', // Tracking ETH price
     logo: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' 
   },
 
@@ -103,6 +103,7 @@ export async function getLivePrices() {
     
     if (!res.ok) throw new Error('Network response was not ok');
     const data = await res.json();
+    console.log(data,"data")
     
     const prices: { [key: string]: number } = {};
     
@@ -112,7 +113,7 @@ export async function getLivePrices() {
     });
 
     // Handle the custom/tethered token
-    prices['TETHEREUM'] = prices['ETH'];
+    // prices['TETHEREUM'] = prices['ETH'];
 
     // 3. Save to local storage with timestamp
     if (typeof window !== 'undefined') {
