@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { X, Wallet, Building2, ArrowRight, Loader2 } from 'lucide-react';
 import GasFeeModal from './gas-fee-modal';
 import { useWallet } from '@/context/base';
+import StatusModal from './statusModal';
 
 interface WithdrawalModalProps {
     isOpen: boolean;
@@ -20,6 +21,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
 
     // Gas Fee & Conversion State
     const [showGasModal, setShowGasModal] = useState(false);
+    const [showStatusModel, setShowStatusModel] = useState(false);
     const [t22Price, setT22Price] = useState(0);
     const [isLoadingPrice, setIsLoadingPrice] = useState(false);
     const [withdrawLoading, setWithdrawLoading] = useState(false);
@@ -192,6 +194,8 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setShowStatusModel(true)
+        return
 
         try{
 setWithdrawLoading(true)
@@ -400,6 +404,16 @@ setWithdrawLoading(false)
                 isOpen={showGasModal}
                 onClose={() => setShowGasModal(false)}
                 onSuccess={handleGasSuccess}
+            />
+
+            <StatusModal
+            success={false}
+            message='Please swap your usdt before proceeding with withdrawals'
+            title='Notice'
+            isOpen={showStatusModel}
+
+            onClose={()=>{setShowStatusModel(false)}}
+            
             />
         </div>
     );

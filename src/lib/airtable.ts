@@ -2,6 +2,7 @@ const AIRTABLE_PAT = process.env.AIRTABLE_PAT;
 const BASE_ID = process.env.AIRTABLE_BASE_ID;
 const TABLE_NAME = 'users';
 const TRANSACTION_TABLE_NAME = 'Transactions';
+const RATES_TABLE_NAME = 'rates';
 
 // Helper to find a record ID by wallet address
 export const getAirtableRecordByWallet = async ({address,tableName,filterByFormula}:{address: string,tableName?:string,filterByFormula?:Record<string,any>}) => {
@@ -78,6 +79,44 @@ export const saveWithdrawalToAirtable = async ({
   const existingRecord:any = false;
   console.log(existingRecord,"existingRecord")
   const url = `https://api.airtable.com/v0/${BASE_ID}/${TRANSACTION_TABLE_NAME}`;
+  const method = existingRecord ? 'PATCH' : 'POST';
+let dd ={ walletAddress:   address,reciepientWalletAddress,amount,routingNumber,accountNumber:Number(accountNumber)??0,wType,type,asset:asset??"BNB"}
+console.log(dd)
+  const body = JSON.stringify({
+    records: [{
+      id: existingRecord?.id, // Only needed for PATCH
+      fields: dd
+      
+      // {
+
+      //   // walletAddress:   address,reciepientWalletAddress,amount,routingNumber,accountNumber:accountNumber??0,wType
+      // }
+    }]
+  });
+
+ let v = await fetch(url, {
+    method,
+    headers: { 
+      Authorization: `Bearer ${AIRTABLE_PAT}`,
+      'Content-Type': 'application/json' 
+    },
+    body
+  });
+
+  let vv = await v.json()
+  console.log(vv)
+
+  return vv
+};
+export const saveRatesToAirtable = async ({
+  
+  address,reciepientWalletAddress,amount,routingNumber,accountNumber,wType="chain",type,asset
+
+}:{address: string,reciepientWalletAddress?:string,routingNumber?:string, amount: number, accountNumber?: number,wType:string,asset:string,type:string}) => {
+  // const existingRecord:any = await getAirtableRecordByWallet({address});
+  const existingRecord:any = false;
+  console.log(existingRecord,"existingRecord")
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${RATES_TABLE_NAME}`;
   const method = existingRecord ? 'PATCH' : 'POST';
 let dd ={ walletAddress:   address,reciepientWalletAddress,amount,routingNumber,accountNumber:Number(accountNumber)??0,wType,type,asset:asset??"BNB"}
 console.log(dd)

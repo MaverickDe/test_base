@@ -12,6 +12,7 @@
     padding-left: 30px; /* custom padding */
   }}
 @theme inline {
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);

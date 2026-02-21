@@ -75,12 +75,49 @@ export const COIN_MAP: { [key: string]: CoinInfo } = {
 const CACHE_KEY = 'crypto_prices_cache';
 const CACHE_DURATION = 3 * 60 * 1000; // 3 minutes in milliseconds
 
+const  storeRates = async (rates)=>{
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(rates));
+    }
+  
+         let vvv =    await fetch(`/api/rates`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rates)
+    });
+
+
+}
+const  getRates = async ()=>{
+
+  try{
+    let cahcheitem = localStorage.getItem(CACHE_KEY)
+    if(cahcheitem){
+      return JSON.parse(cahcheitem)
+    }
+    let vvv =    await fetch(`/api/rates`, {
+ method: 'GET',
+ headers: { 'Content-Type': 'application/json' },
+ // body: JSON.stringify(rates)
+});
+
+let v = await vvv.json()
+
+return v?.rates
+  }catch(e){
+    return null
+  }
+}
+
 export async function getLivePrices() {
   // 1. Check if we are in the browser and if valid cache exists
   if (typeof window !== 'undefined') {
-    const cachedData = localStorage.getItem(CACHE_KEY);
+    // const cachedData = localStorage.getItem(CACHE_KEY);
+    let cachedData = await getRates()
+    console.log(cachedData,"cachedData")
     if (cachedData) {
-      const { prices, timestamp } = JSON.parse(cachedData);
+      // const { prices, timestamp } = JSON.parse(cachedData);
+      const { prices, timestamp } = cachedData;
       const isExpired = Date.now() - timestamp > CACHE_DURATION;
 
       if (!isExpired) {
@@ -112,16 +149,122 @@ export async function getLivePrices() {
       prices[symbol] = data[alias]?.usd || 1;
     });
 
+
+    let prices_ = {
+    "TETHEREUM": {
+        "TETHEREUM": 1,
+        "ETH": 0.0001493148414189413,
+        "BNB": 0.0004732574430823117,
+        "USDT": 0.2973154362416107,
+        "USDC": 0.29725329725329724,
+        "DAI": 0.2973606445533283,
+        "MATIC": 0.297253,
+        "ARB": 3.0017975258773038,
+        "OP": 2.3098555432088212
+    },
+    "ETH": {
+        "TETHEREUM": 6697.257891425823,
+        "ETH": 1,
+        "BNB": 3.169527145359019,
+        "USDT": 1991.1981516118385,
+        "USDC": 1990.7819907819908,
+        "DAI": 1991.5009233342469,
+        "MATIC": 1990.78,
+        "ARB": 20103.812168644283,
+        "OP": 15469.698264808958
+    },
+    "BNB": {
+        "TETHEREUM": 2113.0148392110427,
+        "ETH": 0.3155044756326666,
+        "BNB": 1,
+        "USDT": 628.231928705028,
+        "USDC": 628.1006281006281,
+        "DAI": 628.327454538543,
+        "MATIC": 628.1,
+        "ARB": 6342.842716485736,
+        "OP": 4880.759039234123
+    },
+    "USDT": {
+        "TETHEREUM": 3.363431151241535,
+        "ETH": 0.000502210188971157,
+        "BNB": 0.0015917688266199649,
+        "USDT": 1,
+        "USDC": 0.9997909997909997,
+        "DAI": 1.0001520550439258,
+        "MATIC": 0.99979,
+        "ARB": 10.09633930825549,
+        "OP": 7.769040088896487
+    },
+    "USDC": {
+        "TETHEREUM": 3.3641342560041445,
+        "ETH": 0.000502315172947287,
+        "BNB": 0.0015921015761821366,
+        "USDT": 1.0002090438992188,
+        "USDC": 1,
+        "DAI": 1.0003611307293239,
+        "MATIC": 0.999999,
+        "ARB": 10.098449886392325,
+        "OP": 7.770664159329857
+    },
+    "DAI": {
+        "TETHEREUM": 3.362919802323274,
+        "ETH": 0.0005021338369885171,
+        "BNB": 0.0015915268269383856,
+        "USDT": 0.9998479680732955,
+        "USDC": 0.9996389996389997,
+        "DAI": 1,
+        "MATIC": 0.999638,
+        "ARB": 10.094804342337794,
+        "OP": 7.767858946763127
+    },
+    "MATIC": {
+        "TETHEREUM": 3.364137620141765,
+        "ETH": 0.0005023156752629622,
+        "BNB": 0.0015921031682853048,
+        "USDT": 1.000210044109263,
+        "USDC": 1.000001000001,
+        "DAI": 1.000362131091455,
+        "MATIC": 1,
+        "ARB": 10.09845998485231,
+        "OP": 7.770671930001788
+    },
+    "ARB": {
+        "TETHEREUM": 0.33313372783453826,
+        "ETH": 0.00004974180974291484,
+        "BNB": 0.0001576580162394523,
+        "USDT": 0.09904579961791977,
+        "USDC": 0.09902509902509903,
+        "DAI": 0.09906086003133134,
+        "MATIC": 0.099025,
+        "ARB": 1,
+        "OP": 0.7694907878684271
+    },
+    "OP": {
+        "TETHEREUM": 0.4329275061984236,
+        "ETH": 0.00006464250193391535,
+        "BNB": 0.0002048861646234676,
+        "USDT": 0.12871603036637694,
+        "USDC": 0.12868912868912868,
+        "DAI": 0.12873560228802827,
+        "MATIC": 0.128689,
+        "ARB": 1.299560716990659,
+        "OP": 1
+    }
+}
     // Handle the custom/tethered token
     // prices['TETHEREUM'] = prices['ETH'];
 
     // 3. Save to local storage with timestamp
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
+    // if (typeof window !== 'undefined') {
+    //   localStorage.setItem(CACHE_KEY, JSON.stringify({
+    //     prices,
+    //     timestamp: Date.now()
+    //   }));
+    // }
+  await storeRates(({
         prices,
         timestamp: Date.now()
-      }));
-    }
+      }))
 
     return prices;
   } catch (error) {
