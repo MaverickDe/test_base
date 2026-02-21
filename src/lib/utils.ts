@@ -12,7 +12,7 @@ export interface CoinInfo {
 export const COIN_MAP: { [key: string]: CoinInfo } = {
    'TETHEREUM': { 
     alias: 'tethereum-3', // Tracking ETH price
-    logo: 'https://assets.coingecko.com/coins/images/279/large/ethereum.png' 
+    logo: 'https://assets.coingecko.com/coins/images/54861/standard/Tethereum_Transperent_logo.png?1742309715' 
   },
 
   'ETH': { 
