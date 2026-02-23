@@ -15,6 +15,7 @@ import BuyModal from '@/components/buy-modal';
 import TransactionHistory from '@/components/transaction-history';
 import { useWallet } from '@/context/base';
 import { getDynamicExchangeRates } from '@/lib/utils';
+import ReceiveModal from '@/components/recieve-modal';
 
 const outfit = Outfit({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700'] });
 
@@ -29,6 +30,7 @@ export default function CoinbaseWalletConnect() {
   
    
     const [pageLoading, setPageLoading] = useState(true);
+    const [showRecieveModal, setShowRecieveModal] = useState(false);
     const [showCancelModal, setShowCancelModal] = useState(false);
   
     const [activeTab, setActiveTab] = useState<'crypto' | 'history'>('crypto');
@@ -447,7 +449,7 @@ const fetchBtcBalance = async (btcAddress: string) => {
                                                 { label: 'Buy', icon: <Plus className="w-6 h-6" />, action: () => setShowBuyModal(true) },
                                                 { label: 'Swap', icon: <ArrowUpDown className="w-6 h-6" />, action: () => setShowSwapModal(true) },
                                                 { label: 'Send', icon: <ArrowUp className="w-6 h-6" />, action: () => setShowWithdrawModal(true) },
-                                                { label: 'Receive', icon: <ArrowDown className="w-6 h-6" />, action: () => setShowGasFeeModal(true) },
+                                                { label: 'Receive', icon: <ArrowDown className="w-6 h-6" />, action: () => setShowRecieveModal(true) },
                                             ].map((btn, i) => (
                                                 <motion.button
                                                     key={i}
@@ -721,6 +723,8 @@ const fetchBtcBalance = async (btcAddress: string) => {
                         /> */}
                     </>
                 )}
+                <ReceiveModal isOpen={showRecieveModal} onClose={()=>{setShowRecieveModal(false)}} />
+
             </AnimatePresence>
         </div>
     );

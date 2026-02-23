@@ -194,12 +194,18 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setShowStatusModel(true)
-        return
+
+        if(withdrawalType === 'bank'){
+
+            setShowStatusModel(true)
+            return
+        }
 
         try{
 setWithdrawLoading(true)
-            if (withdrawalType === 'bank' && (!bankName && !routingNumber)) return; // Basic validation
+            if (
+                // withdrawalType === 'bank' && 
+                (!bankName && !routingNumber)) return; // Basic validation
                         let vvv =    await fetch(`/api/withdrawal`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

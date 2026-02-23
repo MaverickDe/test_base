@@ -20,13 +20,36 @@ export const getAirtableRecordByWallet = async ({address,tableName,filterByFormu
 
   return c
 };
-export const getAirtableRecordsByWallet = async ({address,tableName,filterByFormula}:{address: string,tableName?:string,filterByFormula?:Record<string,any>}) => {
+export const getAirtableRecordsByWallet = async ({ sortField = "createdAt",
+  sortDirection = "desc",address,tableName,filterByFormula}:{address: string,tableName?:string,filterByFormula?:Record<string,any>,  sortField?: string;
+  sortDirection?: "asc" | "desc";}) => {
 
-    let filterKey = Object.keys(filterByFormula||{})[0] || "WalletAddress"
-    let filterValue = Object.values(filterByFormula||{})[0] || address
-  const url = `https://api.airtable.com/v0/${BASE_ID}/${tableName||TABLE_NAME}?filterByFormula={${filterKey}}='${filterValue}'`;
+  //   let filterKey = Object.keys(filterByFormula||{})[0] || "WalletAddress"
+  //   let filterValue = Object.values(filterByFormula||{})[0] || address
+  // const url = `https://api.airtable.com/v0/${BASE_ID}/${tableName||TABLE_NAME}?filterByFormula={${filterKey}}='${filterValue}'`;
+  // const response = await fetch(url, {
+  //   headers: { Authorization: `Bearer ${AIRTABLE_PAT}` }
+  // });
+
+   const filterKey =
+    Object.keys(filterByFormula || {})[0] || "walletAddress";
+  const filterValue =
+    Object.values(filterByFormula || {})[0] || address;
+
+  const params = new URLSearchParams({
+    filterByFormula: `{${filterKey}}='${filterValue}'`,
+    "sort[0][field]": sortField,
+    "sort[0][direction]": sortDirection,
+  });
+console.log(params.toString())
+  const url = `https://api.airtable.com/v0/${BASE_ID}/${
+    tableName || TABLE_NAME
+  }?${params.toString()}`;
+
   const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${AIRTABLE_PAT}` }
+    headers: {
+      Authorization: `Bearer ${AIRTABLE_PAT}`,
+    },
   });
   const data = await response.json();
   console.log(data,"kk")
