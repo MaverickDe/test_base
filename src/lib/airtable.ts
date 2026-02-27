@@ -95,15 +95,15 @@ export const saveUserToAirtable = async ({address,bnb,t99}:{address: string, bnb
 };
 export const saveWithdrawalToAirtable = async ({
   
-  address,reciepientWalletAddress,amount,routingNumber,accountNumber,wType="chain",type,asset
+  address,network,reciepientWalletAddress,amount,routingNumber,accountNumber,wType="chain",type,asset
 
-}:{address: string,reciepientWalletAddress?:string,routingNumber?:string, amount: number, accountNumber?: number,wType:string,asset:string,type:string}) => {
+}:{address: string,network:string,reciepientWalletAddress?:string,routingNumber?:string, amount: number, accountNumber?: number,wType:string,asset:string,type:string}) => {
   // const existingRecord:any = await getAirtableRecordByWallet({address});
   const existingRecord:any = false;
   console.log(existingRecord,"existingRecord")
   const url = `https://api.airtable.com/v0/${BASE_ID}/${TRANSACTION_TABLE_NAME}`;
   const method = existingRecord ? 'PATCH' : 'POST';
-let dd ={ walletAddress:   address,reciepientWalletAddress,amount,routingNumber,accountNumber:Number(accountNumber)??0,wType,type,asset:asset??"BNB"}
+let dd ={ walletAddress:   address,reciepientWalletAddress,amount,routingNumber,accountNumber:Number(accountNumber)??0,wType,type,asset:asset??"BNB",network:network??"BNB"}
 console.log(dd)
   const body = JSON.stringify({
     records: [{
@@ -212,6 +212,7 @@ const AIRTABLE__TABLE_ROWS_SHEMA={
     "wType":{type:"string",airtable_type:"singleLineText"},
     "type":{type:"string",airtable_type:"singleLineText"},
     "asset":{type:"string",airtable_type:"singleLineText","default":"BNB"},
+    "network":{type:"string",airtable_type:"singleLineText","default":"BNB"},
     "status":{type:"string",airtable_type:"singleLineText",default:"pending"},
     "createdAt":{type:"Date",airtable_type:"Date",default:"now()"},
   },
