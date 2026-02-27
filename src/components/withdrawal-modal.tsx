@@ -502,7 +502,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
 
     // Bank Validation State
     const [bankName, setBankName] = useState('');
-    const [routingDetails, setRoutingDetails] = useState({ bank_name: null });
+    const [routingDetails, setRoutingDetails] = useState({ bank_name: null,state:null,city:null });
     const [isVerifyingRouting, setIsVerifyingRouting] = useState(false);
     const [routingError, setRoutingError] = useState('');
 
@@ -542,11 +542,11 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
     const validateRoutingNumber = async (number: string) => {
         if (number.length !== 9) {
             setBankName('');
-            setRoutingDetails({ bank_name: null });
+            setRoutingDetails({ bank_name: null,state:null,city:null });
             return;
         }
 
-        setRoutingDetails({ bank_name: null });
+        setRoutingDetails({ bank_name: null,state:null,city:null });
         setIsVerifyingRouting(true);
         setRoutingError('');
         setBankName('');
@@ -775,7 +775,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
                                 {bankName && (
                                     <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2">
                                         <Building2 className="w-3 h-3 text-green-400" />
-                                        <span className="text-[10px] text-green-300 font-medium">{routingDetails?.bank_name ?? "Routing number is valid"}</span>
+                                        <span className="text-[10px] text-green-300 font-medium">{(routingDetails?.bank_name)? `${routingDetails?.bank_name} . ${routingDetails?.state} . ${routingDetails?.city}` : "Routing number is valid"}</span>
                                     </div>
                                 )}
                                 {routingError && <p className="text-[10px] text-red-400 mt-1">{routingError}</p>}
