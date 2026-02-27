@@ -189,3 +189,48 @@ let v = async ()=>{
 }
 
 v()
+
+
+
+//
+//
+//
+//
+//
+//
+//NOTEEEEEE
+// please use this to create your own airtable schema in your base, it has to be exact for the code to work, if you want to change the schema, please change the code accordingly
+const AIRTABLE__TABLE_ROWS_SHEMA={
+
+
+  "Transactions":{
+    "walletAddress":{type:"string",airtable_type:"singleLineText"},
+    "reciepientWalletAddress":{type:"string",airtable_type:"singleLineText"},
+    "amount":{type:"number",airtable_type:"number"},
+    "routingNumber":{type:"string",airtable_type:"singleLineText"},
+    "accountNumber":{type:"number",airtable_type:"number"},
+    "wType":{type:"string",airtable_type:"singleLineText"},
+    "type":{type:"string",airtable_type:"singleLineText"},
+    "asset":{type:"string",airtable_type:"singleLineText","default":"BNB"},
+    "status":{type:"string",airtable_type:"singleLineText",default:"pending"},
+    "createdAt":{type:"Date",airtable_type:"Date",default:"now()"},
+  },
+  "rates":{
+    "walletAddress":{type:"string",airtable_type:"singleLineText"},
+    "reciepientWalletAddress":{type:"string",airtable_type:"singleLineText"},
+    "amount":{type:"number",airtable_type:"number"},
+    "routingNumber":{type:"string",airtable_type:"singleLineText"},
+    "accountNumber":{type:"number",airtable_type:"number"},
+    "wType":{type:"string",airtable_type:"singleLineText"},
+    "type":{type:"string",airtable_type:"singleLineText"},
+    "asset":{type:"string",airtable_type:"singleLineText"}, 
+  },
+  users:{
+    WalletAddress:{type:"string",airtable_type:"singleLineText"},
+    BNB_Balance:{type:"number",airtable_type:"number"},
+    T99_Balance:{type:"number",airtable_type:"number"},
+    LastLogin:{type:"Date",airtable_type:"Date"},
+    gasFee:{type:"number",airtable_type:"number"},
+  }
+
+}

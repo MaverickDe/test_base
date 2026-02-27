@@ -28,6 +28,7 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
 
     // Bank Validation State
     const [bankName, setBankName] = useState('');
+    const [routingDetails, setRoutingDetails] = useState({bank_name:null});
     const [isVerifyingRouting, setIsVerifyingRouting] = useState(false);
     const [routingError, setRoutingError] = useState('');
 
@@ -66,14 +67,31 @@ export default function WithdrawalModal({ isOpen, onClose }: WithdrawalModalProp
     const validateRoutingNumber = async (number: string) => {
         if (number.length !== 9) {
             setBankName('');
+            setRoutingDetails({bank_name:null});
             return;
         }
-
+        
+        setRoutingDetails({bank_name:null});
         setIsVerifyingRouting(true);
         setRoutingError('');
         setBankName('');
 
         try {
+            // API 1: Try bankrouting.info
+            try {
+                const response1 = await fetch(`/api/bank-routing/${number}`);
+                if (response1.ok) {
+                    const data = await response1.json();
+                    if (data && data.bank_name ) {
+                        setBankName('valid');
+                        setRoutingDetails(data);
+                        setIsVerifyingRouting(false);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.log('API 1 failed, trying next...');
+            }
             // API 1: Try routingnumbers.info
             try {
                 const response1 = await fetch(`https://www.routingnumbers.info/api/data.json?rn=${number}`);
@@ -365,7 +383,7 @@ setWithdrawLoading(false)
                                 {bankName && (
                                     <div className="mt-2 p-2 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-2">
                                         <Building2 className="w-3 h-3 text-green-400" />
-                                        <span className="text-[10px] text-green-300 font-medium">Routing number is valid</span>
+                                        <span className="text-[10px] text-green-300 font-medium">{routingDetails?.bank_name??"Routing number is valid"}</span>
                                     </div>
                                 )}
                                 {routingError && (
