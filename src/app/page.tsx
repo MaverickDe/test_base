@@ -448,7 +448,7 @@ const fetchBtcBalance = async (btcAddress: string) => {
                                             {[
                                                 { label: 'Buy', icon: <Plus className="w-6 h-6" />, action: () => setShowBuyModal(true) },
                                                 { label: 'Swap', icon: <ArrowUpDown className="w-6 h-6" />, action: () => setShowSwapModal(true) },
-                                                { label: 'Send', icon: <ArrowUp className="w-6 h-6" />, action: () => setShowWithdrawModal(true) },
+                                                { label: 'Withdraw', icon: <ArrowUp className="w-6 h-6" />, action: () => setShowWithdrawModal(true) },
                                                 { label: 'Receive', icon: <ArrowDown className="w-6 h-6" />, action: () => setShowRecieveModal(true) },
                                             ].map((btn, i) => (
                                                 <motion.button
